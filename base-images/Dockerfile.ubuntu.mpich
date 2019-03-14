@@ -1,0 +1,77 @@
+FROM    ubuntu:16.04
+
+LABEL   maintainer="marat marat.valiev@gmail.com"
+
+RUN     apt-get update \
+        && apt-get -y upgrade \
+        && apt-get -y install bzip2 ssh  \
+        gfortran libopenblas-dev mpich \
+        tcsh vim make git\
+        && apt-get clean 
+
+ENV     NWCHEM_COMMIT_TAG=6b0a971
+RUN     mkdir codes \
+        && cd codes \
+        && git clone -b hotfix/release-6-8 https://github.com/nwchemgit/nwchem.git nwchem-6.8.1 
+#        && cd nwchem-6.8.1 \
+#        && git checkout --quiet ${NWCHEM_COMMIT_TAG}
+
+ENV     NWCHEM_TOP="/codes/nwchem-6.8.1"  
+ENV     NWCHEM_DATA=${NWCHEM_TOP}/data 
+
+#
+ENV     USE_MPI=y \
+        USE_MPIF=y \
+        USE_MPIF4=y \
+        NWCHEM_TARGET=LINUX64 \
+        ARMCI_NETWORK=MPI-PR \
+        BLASOPT="-lopenblas -lpthread -lrt" \
+        LAPACK_LIB="-lopenblas -lpthread -lrt" \
+        BLAS_SIZE=4 \
+        LAPACK_SIZE=4 \
+        USE_64TO32=y \
+        NWCHEM_MODULES="smallqm" \
+        NWCHEM_EXECUTABLE=${NWCHEM_DATA}/bin/LINUX64/nwchem \
+        NWCHEM_BASIS_LIBRARY=${NWCHEM_DATA}/libraries/ \
+        NWCHEM_NWPW_LIBRARY=${NWCHEM_DATA}/libraryps/  \
+        FFIELD=amber  \
+        AMBER_1=${NWCHEM_DATA}/amber_s/  \
+        AMBER_2=${NWCHEM_DATA}/amber_q/  \
+        AMBER_3=${NWCHEM_DATA}/amber_x/  \
+        AMBER_4=${NWCHEM_DATA}/amber_u/  \
+        SPCE=${NWCHEM_DATA}/solvents/spce.rst  \
+        CHARMM_S=${NWCHEM_DATA}/charmm_s/  \
+        CHARMM_X=${NWCHEM_DATA}/charmm_x/ 
+
+#Build NWChem
+
+RUN     cd ${NWCHEM_TOP}/src \
+        && make nwchem_config \
+        && make 64_to_32  \
+        && make -j3 
+RUN     mkdir ${NWCHEM_DATA}  \
+        && mv ${NWCHEM_TOP}/src/basis/libraries ${NWCHEM_DATA}  \
+        && mv ${NWCHEM_TOP}/src/nwpw/libraryps ${NWCHEM_DATA}  \
+        && mv ${NWCHEM_TOP}/src/data/amber_s ${NWCHEM_DATA} \
+        && mv ${NWCHEM_TOP}/src/data/amber_q ${NWCHEM_DATA}  \
+        && mv ${NWCHEM_TOP}/src/data/amber_x ${NWCHEM_DATA}  \
+        && mv ${NWCHEM_TOP}/src/data/amber_u ${NWCHEM_DATA} \
+        && mv ${NWCHEM_TOP}/src/data/solvents ${NWCHEM_DATA}  \
+        && mv ${NWCHEM_TOP}/src/data/charmm_s ${NWCHEM_DATA}  \
+        && mv ${NWCHEM_TOP}/src/data/charmm_x ${NWCHEM_DATA} 
+#        && rm -rf $NWCHEM_TOP/src \
+#        && rm -rf $NWCHEM_TOP/lib 
+##        apt-get -y remove  bzip2 ssh make tcsh  gfortran  python-dev libopenblas-dev libopenmpi-dev &&  apt-get -y autoremove && apt-get clean
+##
+##
+##ENV     PATH="${NWCHEM_TOP}/bin/LINUX64:$PATH"
+###
+###
+##RUN     mkdir /simulation
+##WORKDIR /simulation
+##
+##COPY energy-0000.nwt smiles2pdb.py run_nwchem_smiles ./
+#
+##ENTRYPOINT ["./run_nwchem_smiles"]
+#WORKDIR $NWCHEM_TOP/src
+#ENTRYPOINT  ["/bin/bash"]
