@@ -73,4 +73,6 @@ RUN     echo "#!/bin/bash" > test.sh \
         && echo "./runtests.mpi.unix procs 2 h2o h2o_opt" >> test.sh \
         && chmod 770 test.sh
 
+RUN    mkdir /simulation
+WORKDIR /simulation
 #ENTRYPOINT  ["/bin/bash"]
