@@ -9,12 +9,12 @@ RUN     apt-get update \
         tcsh vim make git\
         && apt-get clean 
 
-ENV     NWCHEM_COMMIT_TAG=6b0a971
+ENV     NWCHEM_COMMIT_TAG=10b7ab5ecdd8a916cc4e4a40a8cf4eccb636c0b0
 RUN     mkdir codes \
         && cd codes \
-        && git clone -b hotfix/release-6-8 https://github.com/nwchemgit/nwchem.git nwchem-6.8.1 
-#        && cd nwchem-6.8.1 \
-#        && git checkout --quiet ${NWCHEM_COMMIT_TAG}
+        && git clone -b hotfix/release-6-8 https://github.com/nwchemgit/nwchem.git nwchem-6.8.1 \
+        && cd nwchem-6.8.1 \
+        && git checkout --quiet ${NWCHEM_COMMIT_TAG}
 
 ENV     NWCHEM_TOP="/codes/nwchem-6.8.1"  
 ENV     NWCHEM_DATA=${NWCHEM_TOP}/data 
