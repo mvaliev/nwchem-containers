@@ -9,7 +9,7 @@ RUN     apt-get update \
         tcsh vim make git\
         && apt-get clean 
 
-ENV     NWCHEM_COMMIT_TAG=10b7ab5ecdd8a916cc4e4a40a8cf4eccb636c0b0
+ENV     NWCHEM_COMMIT_TAG=d9e30bd2929f5eff0ae7649b208454991a45ff70
 RUN     mkdir codes \
         && cd codes \
         && git clone -b hotfix/release-6-8 https://github.com/nwchemgit/nwchem.git nwchem-6.8.1 \
@@ -49,6 +49,7 @@ RUN     cd ${NWCHEM_TOP}/src \
         && make nwchem_config \
         && make 64_to_32  \
         && make -j3 
+ENV     NWCHEM_EXECUTABLE=${NWCHEM_TOP}/bin/LINUX64/nwchem
 RUN     mkdir ${NWCHEM_DATA}  \
         && mv ${NWCHEM_TOP}/src/basis/libraries ${NWCHEM_DATA}  \
         && mv ${NWCHEM_TOP}/src/nwpw/libraryps ${NWCHEM_DATA}  \
@@ -61,17 +62,15 @@ RUN     mkdir ${NWCHEM_DATA}  \
         && mv ${NWCHEM_TOP}/src/data/charmm_x ${NWCHEM_DATA} 
 #        && rm -rf $NWCHEM_TOP/src \
 #        && rm -rf $NWCHEM_TOP/lib 
-##        apt-get -y remove  bzip2 ssh make tcsh  gfortran  python-dev libopenblas-dev libopenmpi-dev &&  apt-get -y autoremove && apt-get clean
-##
-##
-##ENV     PATH="${NWCHEM_TOP}/bin/LINUX64:$PATH"
-###
-###
-##RUN     mkdir /simulation
-##WORKDIR /simulation
-##
-##COPY energy-0000.nwt smiles2pdb.py run_nwchem_smiles ./
+#        apt-get -y remove  bzip2 ssh make tcsh  gfortran  python-dev libopenblas-dev libopenmpi-dev &&  apt-get -y autoremove && apt-get clean
 #
-##ENTRYPOINT ["./run_nwchem_smiles"]
-#WORKDIR $NWCHEM_TOP/src
+#
+ENV     PATH="${NWCHEM_TOP}/bin/LINUX64:$PATH"
+     
+WORKDIR ${NWCHEM_TOP}/bin/LINUX64
+RUN     echo "#!/bin/bash" > test.sh \
+        && echo "cd ${NWCHEM_TOP}/QA" >> test.sh \
+        && echo "./runtests.mpi.unix procs 2 h2o h2o_opt" >> test.sh \
+        && chmod 770 test.sh
+
 #ENTRYPOINT  ["/bin/bash"]
