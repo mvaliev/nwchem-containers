@@ -65,14 +65,20 @@ RUN     mkdir ${NWCHEM_DATA}  \
 #        apt-get -y remove  bzip2 ssh make tcsh  gfortran  python-dev libopenblas-dev libopenmpi-dev &&  apt-get -y autoremove && apt-get clean
 #
 #
-ENV     PATH="${NWCHEM_TOP}/bin/LINUX64:$PATH"
      
-WORKDIR ${NWCHEM_TOP}/bin/LINUX64
+RUN     apt-get install acl
+RUN     useradd -d /simulation -m nwchem
+
+USER    nwchem
+
+ENV     PATH=".:${NWCHEM_TOP}/bin/LINUX64:$PATH"
+
+WORKDIR /simulation
 RUN     echo "#!/bin/bash" > test.sh \
-        && echo "cd ${NWCHEM_TOP}/QA" >> test.sh \
+        && echo "cp -r ${NWCHEM_TOP}/QA ." >> test.sh \
+        && echo "cd QA" >> test.sh \
         && echo "./runtests.mpi.unix procs 2 h2o h2o_opt" >> test.sh \
         && chmod 770 test.sh
 
-RUN    mkdir /simulation
-WORKDIR /simulation
+
 #ENTRYPOINT  ["/bin/bash"]
