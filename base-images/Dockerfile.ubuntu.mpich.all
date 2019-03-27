@@ -66,12 +66,6 @@ RUN     mkdir ${NWCHEM_DATA}  \
 #
 #
 ENV     PATH="${NWCHEM_TOP}/bin/LINUX64:$PATH"
-     
-WORKDIR ${NWCHEM_TOP}/bin/LINUX64
-RUN     echo "#!/bin/bash" > test.sh \
-        && echo "cd ${NWCHEM_TOP}/QA" >> test.sh \
-        && echo "./runtests.mpi.unix procs 2 h2o h2o_opt" >> test.sh \
-        && chmod 770 test.sh
 
 RUN     echo "nwchem_basis_library ${NWCHEM_BASIS_LIBRARY}" > /etc/nwchemrc \
         && echo "nwchem_nwpw_library ${NWCHEM_NWPW_LIBRARY}" >> /etc/nwchemrc \
@@ -84,6 +78,18 @@ RUN     echo "nwchem_basis_library ${NWCHEM_BASIS_LIBRARY}" > /etc/nwchemrc \
         && echo "charmm_s ${CHARMM_S} " >> /etc/nwchemrc \
         && echo "charmm_x ${CHARMM_X} " >> /etc/nwchemrc 
 
-RUN    mkdir /simulation
+RUN     useradd -d /simulation -m nwchem
+
+USER    nwchem
+
+ENV     PATH=".:${NWCHEM_TOP}/bin/LINUX64:$PATH"
+
 WORKDIR /simulation
+RUN     echo "#!/bin/bash" > test.sh \
+        && echo "cp -r ${NWCHEM_TOP}/QA ." >> test.sh \
+        && echo "cd QA" >> test.sh \
+        && echo "./runtests.mpi.unix procs 2 h2o h2o_opt" >> test.sh \
+        && chmod 770 test.sh
+
+
 #ENTRYPOINT  ["/bin/bash"]
